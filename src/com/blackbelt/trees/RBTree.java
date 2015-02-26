@@ -8,6 +8,7 @@ public class RBTree<K extends Comparable<K>, T> {
 		public T mItem;
 		private boolean mColor = RED;
 
+		Node<K, T> mParent;
 		Node<K, T> mLeftChild;
 		Node<K, T> mRightChild;
 		
@@ -18,7 +19,8 @@ public class RBTree<K extends Comparable<K>, T> {
 
 		@Override
 		public String toString() {
-			return "key " + mKey + " data " + mItem;
+			String string =  "Me: { " + mKey + " " +mColor + " } ";
+			return string;
 		}
 	}
 
@@ -33,60 +35,87 @@ public class RBTree<K extends Comparable<K>, T> {
 	} 
 	
 
-	public void insertNode(final K key, final T item) {
-		mRoot = insertNodeRecursive(mRoot, key, item);
-		mRoot.mColor = BLACK;
+	public void put(final K key, final T item) {
+		insertNodeIterative(key, item);
+	}
+
+	private void fixInsert(Node<K, T> node) {
+		while (node.mParent != null && node.mParent.mColor == RED) {
+			if (node.mParent == node.mParent.mParent.mLeftChild) {
+				Node<K, T> uncle = node.mParent.mParent.mRightChild;
+				if (uncle != null && uncle.mColor == RED) {
+					node.mParent.mColor = BLACK;
+					uncle.mColor = BLACK;
+					node.mParent.mParent.mColor = RED;
+					node = node.mParent.mParent;
+				} else { 
+					if (node == node.mParent.mRightChild) {
+						node = node.mParent;
+						leftRotate(node);
+					}	
+					node.mParent.mColor = BLACK;
+					node.mParent.mParent.mColor = RED;
+					node = node.mParent.mParent;
+					rightRotate(node);
+				}
+			} else if (node.mParent == node.mParent.mParent.mRightChild) {
+				Node<K, T> uncle = node.mParent.mParent.mLeftChild;
+				if (uncle != null && uncle.mColor == RED) {
+					node.mParent.mColor = BLACK;
+					uncle.mColor = BLACK;
+					node.mParent.mParent.mColor = RED;
+					node = node.mParent.mParent;
+				} else { 
+					if (node == node.mParent.mLeftChild) {
+						node = node.mParent;
+						rightRotate(node);
+					}
+					node.mParent.mColor = BLACK;
+					node.mParent.mParent.mColor = RED;
+					node = node.mParent.mParent;
+					leftRotate(node);
+				}
+			}
+		}
+		mRoot.mColor = BLACK;	
 	}
 	
-	private Node<K, T> insertNodeRecursive(Node<K, T> current, K key, T value) {
-			System.out.println(" current " + current);
-			if (current == null) {
-				return new Node<>(key, value);
-			}
-			if (key.compareTo(current.mKey) <= 0) {
-				 current.mLeftChild = insertNodeRecursive(current.mLeftChild, key, value);
-			} else if (key.compareTo(current.mKey) > 0) {
-				 current.mRightChild = insertNodeRecursive(current.mRightChild, key, value);
-			}
-			if (isRed(current.mRightChild) && !isRed(current.mLeftChild)) {
-				current = rotateLeft(current);
-			}
-			if (isRed(current.mLeftChild) && isRed(current.mLeftChild.mLeftChild)) {
-				current = rotateRight(current);
-			}	
-			if (isRed(current.mRightChild) && isRed(current.mLeftChild)) {
-				switchColours(current);
-			}
-			return current;
+
+	private void leftRotate(Node<K, T> node) {
+		Node<K, T> y = node.mRightChild;
+		node.mRightChild = y.mLeftChild;
+		if (y.mLeftChild != null) {
+			y.mLeftChild.mParent = node;
+		}
+		y.mParent = node.mParent;
+		if (node.mParent == null) {
+			mRoot = y;
+		} else if (node == node.mParent.mLeftChild) {
+			node.mParent.mLeftChild = y;
+		} else {
+			node.mParent.mRightChild = y;
+		}
+		y.mLeftChild = node;
+		node.mParent = y;
+	
 	}
-
-	private void switchColours(Node<K, T> node) {
-		node.mColor = !node.mColor;
-		node.mLeftChild.mColor = !node.mLeftChild.mColor;
-		node.mRightChild.mColor = !node.mRightChild.mColor;
-	}
-
-	private boolean isRed(Node<K, T> node) {
-		return node != null && node.mColor == RED;
-	}
-
-
-	private Node<K, T> rotateLeft(Node<K, T> node) {
-		Node<K, T> t = node.mRightChild;
-		node.mRightChild = t.mLeftChild;
-		t.mLeftChild = node;
-		t.mColor = t.mLeftChild.mColor;
-		t.mLeftChild.mColor = RED;
-		return t;
-	}
-
-	private Node<K, T> rotateRight(Node<K, T> node) {
-		Node<K, T> t = node.mLeftChild;
-		node.mLeftChild = t.mRightChild;
-		t.mRightChild = node;
-		t.mColor = t.mRightChild.mColor;
-		t.mRightChild.mColor = RED;
-		return t;
+	
+	private void rightRotate(Node<K, T> node) {
+		Node<K, T> y = node.mLeftChild;
+		node.mLeftChild = y.mRightChild;
+		if (y.mRightChild != null) {
+			y.mRightChild.mParent = node;
+		}
+		y.mParent = node.mParent;
+		if (node.mParent == null) {
+			mRoot = y;
+		} else if (node == node.mParent.mRightChild) {
+			node.mParent.mRightChild = y;
+		} else {
+			node.mParent.mLeftChild = y;
+		}
+		y.mRightChild = node;
+		node.mParent = y;
 	}
 
 	
@@ -94,27 +123,35 @@ public class RBTree<K extends Comparable<K>, T> {
 		Node<K, T> node = new Node<>(key, item);
 		if (mRoot == null) {
 			mRoot = node;
+			mRoot.mColor = BLACK;
 			return;
 		}
 		Node<K, T> tmpNode = mRoot;
 		Node<K, T> parent = null;
-		while (true) {	
+		boolean inserted = false;
+		while (!inserted) {	
 			parent = tmpNode;
 			K tmpNodeKey = tmpNode.mKey;
 			if (key.compareTo(tmpNodeKey) <= 0) {
 				tmpNode = tmpNode.mLeftChild;
 				if(tmpNode == null) {
 					parent.mLeftChild = node;
-					return;	
+					inserted = true;
 				}
 			} else if (key.compareTo(tmpNodeKey) > 0) {
 				tmpNode = tmpNode.mRightChild;
 				if (tmpNode == null) {
 					parent.mRightChild = node;
-					return;
+					inserted = true;
 				}
 			} 
 		}
+		node.mParent = parent;
+		fixInsert(node);
+	}
+
+	public void printRoot() {
+		System.out.println(mRoot);
 	}
 	
 	public void printTree(final PRINT_ORDER order) {
