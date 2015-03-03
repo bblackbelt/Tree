@@ -1,3 +1,4 @@
+
 package com.blackbelt.trees;
 import java.lang.Comparable;
 
@@ -29,7 +30,7 @@ public class BSTree<K extends Comparable<K>, T> {
 	} 
 	
 
-	public void insertNode(final K key, final T item) {
+	public void put(final K key, final T item) {
 		Node<K, T> node = new Node<>(key, item);
 		if (mRoot == null) {
 			mRoot = node;
@@ -218,5 +219,8 @@ public class BSTree<K extends Comparable<K>, T> {
 			node = node.mRightChild;
 		}
 		return node;
+	}
+	public void printRoot() {
+		System.out.println(mRoot);
 	}
 }
