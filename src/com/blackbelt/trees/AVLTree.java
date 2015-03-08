@@ -17,7 +17,58 @@ public class AVLTree<K extends Comparable<K>, V> extends AbsBalancedBSTree<K, V>
 
     @Override
     public V delete(K key) {
+        Node<K, V> n = deleteNodeIterative(key);
+        if (n != null) {
+            return n.mValue;
+        }
         return null;
+    }
+
+    protected Node<K, V> deleteNodeIterative(K key) {
+        boolean found = false;
+        Node<K, V> tmp = mRoot;
+        while (!found) {
+            if (tmp == null) {
+                System.out.println(" node not found ");
+                return null;
+            }
+            if (key.compareTo(tmp.mKey) < 0) {
+                tmp = tmp.mLeftChild;
+            } else if (key.compareTo(tmp.mKey) > 0) {
+                tmp = tmp.mRightChild;
+            } else {
+                System.out.println(" found " + tmp);
+                if (tmp.mLeftChild == null) {
+                    transplant(tmp, tmp.mRightChild);
+                } else if (tmp.mRightChild == null) {
+                    transplant(tmp, tmp.mLeftChild);
+                } else {
+                    Node<K, V> minNode = treeMinimum(tmp.mRightChild);
+                    if (minNode.mParent != null) {
+                        minNode.mParent.mLeftChild = minNode.mRightChild;
+                        minNode.mRightChild = tmp.mRightChild;
+                    }
+                    transplant(tmp, minNode);
+                    minNode.mLeftChild = tmp.mLeftChild;
+                }
+                fixUpDeletion(tmp);
+                return tmp;
+            }
+        }
+        return  null;
+    }
+
+    private void transplant(Node<K, V> from, Node<K, V> with) {
+        if (from.mParent == null) {
+            mRoot = with;
+        } else if (from == from.mParent.mLeftChild) {
+            from.mParent.mLeftChild = with;
+        } else {
+            from.mParent.mRightChild = with;
+        }
+        if (with != null) {
+            with.mParent = from.mParent;
+        }
     }
 
 

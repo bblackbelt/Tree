@@ -115,7 +115,7 @@ public abstract class AbsBSTree<K extends Comparable<K>, V> {
     }
 
     protected Node<K, V> treeMinimum(Node<K, V> node) {
-        while (node.mLeftChild != null) {
+        while (node != null && node.mLeftChild != null) {
             node = node.mLeftChild;
         }
         return node;
@@ -163,6 +163,91 @@ public abstract class AbsBSTree<K extends Comparable<K>, V> {
 
     public boolean contains(K key) {
         return searchRecursive(key, mRoot) != null;
+    }
+
+
+    protected Node<K, V> deleteNodeIterative(K key) {
+        boolean found = false;
+        Node<K, V> tmp = mRoot;
+        Node<K, V> parent = null;
+        while (!found) {
+            if (tmp == null) {
+                System.out.println(" node not found ");
+                return null;
+            }
+            if (key.compareTo(tmp.mKey) < 0) {
+                parent = tmp;
+                tmp = tmp.mLeftChild;
+            } else if (key.compareTo(tmp.mKey) > 0) {
+                parent = tmp;
+                tmp = tmp.mRightChild;
+            } else {
+                System.out.println(" found " + tmp);
+                if (tmp.mLeftChild == null) {
+                    transplant(tmp, tmp.mRightChild, parent);
+                } else if (tmp.mRightChild == null) {
+                    transplant(tmp, tmp.mLeftChild, parent);
+                } else {
+                    Node<K, V> minNode = tmp.mRightChild;
+                    Node<K, V> pMinNode = null;
+                    while (minNode != null && minNode.mLeftChild != null) {
+                        pMinNode = minNode;
+                        minNode = minNode.mLeftChild;
+                    }
+                    //     System.out.println(" minNode " + minNode + " " + pMinNode);
+                    if (pMinNode != null) {
+                        pMinNode.mLeftChild = minNode.mRightChild;
+                        minNode.mRightChild = tmp.mRightChild;
+                    }
+                    transplant(tmp, minNode, parent);
+                    minNode.mLeftChild = tmp.mLeftChild;
+                }
+                return tmp;
+            }
+        }
+        return null;
+    }
+
+    private void transplant(Node<K, V> from, Node<K, V> with, Node<K, V> fromParent) {
+        if (fromParent == null) {
+            mRoot = with;
+        } else if (fromParent.mRightChild == from) {
+            fromParent.mRightChild = with;
+        } else {
+            fromParent.mLeftChild = with;
+        }
+    }
+
+
+    protected Node<K, V> deleteNodeRecursive(K key, Node<K, V> node) {
+        if (node == null || key == null) {
+            return null;
+        }
+
+        if (key.compareTo(node.mKey) < 0) {
+            node.mLeftChild = deleteNodeRecursive(key, node.mLeftChild);
+        } else if (key.compareTo(node.mKey) > 0) {
+            node.mRightChild = deleteNodeRecursive(key, node.mRightChild);
+        } else {
+            // node without left child. We replace it with his right child.
+            // if the right child is null, the we dealt with the situation
+            // where node has both children null. If its right child is not
+            // null, we dealt with the situation when node has just one child
+            // which is its right
+            if (node.mLeftChild == null) {
+                return node.mRightChild;
+            }
+            // if node has just one child which is its left child
+            // we replace node with its left child.
+            if (node.mRightChild == null) {
+                return node.mLeftChild;
+            }
+            Node<K, V> t = node;
+            node = treeMinimum(t.mRightChild);
+            node.mRightChild = deleteMin(t.mRightChild);
+            node.mLeftChild = t.mLeftChild;
+        }
+        return node;
     }
 
     public abstract void put(K key, V value);
