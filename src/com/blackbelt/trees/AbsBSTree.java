@@ -29,7 +29,12 @@ public abstract class AbsBSTree<K extends Comparable<K>, V> {
 
         @Override
         public String toString() {
-            return "{Key: " + mKey + " Value " + mValue + " } parent " + ((mParent != null) ? mParent.mKey : " null ");
+            String parent = "null";
+            if (mParent != null) {
+                parent = ""+mParent.mKey;
+                parent += " leftChild " + (mParent.mLeftChild == this) + " rightChild " + (mParent.mRightChild == this);
+            }
+            return "{Key: " + mKey + " Value " + mValue + " } parent " + parent;
         }
     }
 
