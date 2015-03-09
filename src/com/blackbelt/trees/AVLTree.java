@@ -106,7 +106,7 @@ public class AVLTree<K extends Comparable<K>, V> extends AbsBalancedBSTree<K, V>
 
     @Override
     protected void fixUpDeletion(Node<K, V> node) {
-      
+        
     }
 
     public void printHeight(K key) {
@@ -121,7 +121,7 @@ public class AVLTree<K extends Comparable<K>, V> extends AbsBalancedBSTree<K, V>
 
     int getBalance(Node<K, V> node) {
         if (node == null) {
-            return 0;
+            return -1;
         }
         int leftHeight = height(node.mLeftChild);
         int rightHeight = height(node.mRightChild);
