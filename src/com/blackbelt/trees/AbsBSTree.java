@@ -201,11 +201,13 @@ public abstract class AbsBSTree<K extends Comparable<K>, V> {
                     }
                     //     System.out.println(" minNode " + minNode + " " + pMinNode);
                     if (pMinNode != null) {
-                        pMinNode.mLeftChild = minNode.mRightChild;
+                        transplant(minNode, minNode.mRightChild, pMinNode);
                         minNode.mRightChild = tmp.mRightChild;
+                       // minNode.mRightChild.mParent = minNode;
                     }
                     transplant(tmp, minNode, parent);
                     minNode.mLeftChild = tmp.mLeftChild;
+                    //minNode.mLeftChild.mParent = minNode;
                 }
                 return tmp;
             }
