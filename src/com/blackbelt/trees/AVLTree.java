@@ -37,7 +37,7 @@ public class AVLTree<K extends Comparable<K>, V> extends AbsBalancedBSTree<K, V>
             } else if (key.compareTo(tmp.mKey) > 0) {
                 tmp = tmp.mRightChild;
             } else {
-                System.out.println(" found " + tmp);
+                //System.out.println(" found " + tmp);
                 if (tmp.mLeftChild == null) {
                     transplant(tmp, tmp.mRightChild);
                 } else if (tmp.mRightChild == null) {
@@ -45,17 +45,51 @@ public class AVLTree<K extends Comparable<K>, V> extends AbsBalancedBSTree<K, V>
                 } else {
                     Node<K, V> minNode = treeMinimum(tmp.mRightChild);
                     if (minNode.mParent != null) {
-                        minNode.mParent.mLeftChild = minNode.mRightChild;
+                        transplant(minNode, minNode.mRightChild);
                         minNode.mRightChild = tmp.mRightChild;
+                        if (minNode.mRightChild != null) {
+                            minNode.mRightChild.mParent = minNode;
+                        }
                     }
                     transplant(tmp, minNode);
                     minNode.mLeftChild = tmp.mLeftChild;
+                    minNode.mLeftChild.mParent = minNode;
+                    fixUpDeletion(tmp);
+                    return tmp;
                 }
                 fixUpDeletion(tmp);
                 return tmp;
             }
         }
-        return  null;
+        return null;
+    }
+
+    @Override
+    protected void fixUpDeletion(Node<K, V> node) {
+        Node<K, V> tmp = node;
+        while (tmp != null) {
+            int balance = getBalance(tmp);
+           // System.out.println(" ss " + tmp + " " + balance);
+            if (balance == 2 || balance == -2) {
+                int leftBalance = getBalance(tmp.mLeftChild);
+                int rightBalance = getBalance(tmp.mRightChild);
+                if (leftBalance > rightBalance) {
+                    Node<K, V> leftChild = tmp.mLeftChild;
+                    if (getBalance(leftChild.mLeftChild) < getBalance(leftChild.mRightChild)) {
+                        leftRotate(tmp.mLeftChild);
+                    }
+                    rightRotate(tmp);
+                } else {
+                    Node<K, V> rightChild = tmp.mRightChild;
+                    if (getBalance(rightChild.mRightChild) < getBalance(rightChild.mLeftChild)) {
+                        rightRotate(tmp.mRightChild);
+                    }
+                    leftRotate(tmp);
+                }
+            }
+            tmp = tmp.mParent;
+        }
+
     }
 
     private void transplant(Node<K, V> from, Node<K, V> with) {
@@ -77,10 +111,10 @@ public class AVLTree<K extends Comparable<K>, V> extends AbsBalancedBSTree<K, V>
         if (node == null || node.mParent == null || node.mParent.mParent == null) {
             return;
         }
-        while(node.mParent.mParent != null) {
+        while (node.mParent.mParent != null) {
             Node<K, V> parent = node.mParent.mParent;
             int balanceFactor = getBalance(parent);
-            System.out.println("balanceFactor " + balanceFactor);
+           // System.out.println("balanceFactor " + balanceFactor);
             if (balanceFactor < -1 || balanceFactor > 1) {
                 if (node.mParent == node.mParent.mParent.mLeftChild) {
                     if (node == node.mParent.mRightChild) {
@@ -97,17 +131,13 @@ public class AVLTree<K extends Comparable<K>, V> extends AbsBalancedBSTree<K, V>
                     node = node.mParent.mParent;
                     leftRotate(node);
                 }
-                System.out.println("node " + node + "balanceFactor " + balanceFactor);
+           //     System.out.println("node " + node + "balanceFactor " + balanceFactor);
                 continue;
             }
             node = node.mParent;
         }
     }
 
-    @Override
-    protected void fixUpDeletion(Node<K, V> node) {
-        
-    }
 
     public void printHeight(K key) {
         Node<K, V> node = searchIterative(key);
@@ -125,7 +155,7 @@ public class AVLTree<K extends Comparable<K>, V> extends AbsBalancedBSTree<K, V>
         }
         int leftHeight = height(node.mLeftChild);
         int rightHeight = height(node.mRightChild);
-        return leftHeight-rightHeight;
+        return leftHeight - rightHeight;
 
     }
 
