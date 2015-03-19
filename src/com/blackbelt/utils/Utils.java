@@ -84,8 +84,7 @@ public class Utils {
     }
 
     public static void sort(int[] a) {
-       heapSort(a);
-       // simpleQuickSort(a, 0, a.length - 1);
+        mergeSort(a);
         assert isSorted(a, 0, a.length - 1);
     }
 
@@ -122,7 +121,31 @@ public class Utils {
     }
 
     private static void mergeSort(int[] a) {
-        int[] tmp = new int[a.length];
+        int[] aux = new int[a.length];
+        mergeSort(a, aux, 0, a.length - 1);
+    }
+
+    private static void mergeSort(int[] a, int[] aux, int lo, int hi) {
+        if (lo < hi) {
+            int middle = (hi + lo) / 2;
+            mergeSort(a, aux, lo, middle);
+            mergeSort(a, aux, middle + 1, hi);
+            merge(a, aux, lo, middle, hi);
+        }
+    }
+
+    private static void merge(int[] a, int[] aux, int lo, int mid, int hi) {
+        for (int k = lo; k <= hi; k++) {
+            aux[k] = a[k];
+        }
+        // merge back to a[]
+        int i = lo, j = mid + 1;
+        for (int k = lo; k <= hi; k++) {
+            if (i > mid) a[k] = aux[j++];   // this copying is unnecessary
+            else if (j > hi) a[k] = aux[i++];
+            else if ((aux[j] < aux[i])) a[k] = aux[j++];
+            else a[k] = aux[i++];
+        }
     }
 
     private static boolean isSorted(int[] a, int lo, int hi) {
